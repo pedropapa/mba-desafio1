@@ -1,21 +1,23 @@
 import {Component, NgZone} from "@angular/core";
-import {ToastController} from "ionic-angular";
+import {NavController, Platform, ToastController} from "ionic-angular";
 import {Camera, CameraOptions} from "@ionic-native/camera";
 import {Storage} from "@ionic/storage";
 import {ImagePicker, ImagePickerOptions} from "@ionic-native/image-picker";
-import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
+import {ViewPhotoPage} from "../view-photo/view-photo";
+import {DomSanitizer} from "@angular/platform-browser";
+import {FilePath} from "@ionic-native/file-path";
 
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
 })
 export class HomePage {
-  public imagesGallery: Array<SafeUrl> = [];
+  public imagesGallery: Array<string> = [];
 
-  constructor(public toastCtrl: ToastController, public camera: Camera, public storage: Storage, public imagePicker: ImagePicker, public ngzone: NgZone) {
+  constructor(public plt: Platform, public filePath: FilePath, public sanitizer: DomSanitizer, public navController: NavController, public toastCtrl: ToastController, public camera: Camera, public storage: Storage, public imagePicker: ImagePicker, public ngzone: NgZone) {
     storage.get('gallery').then((gallery) => {
-      console.log('>>>>>> ', gallery);
-      if(gallery) {
+      if (gallery) {
+        console.log(gallery);
         this.imagesGallery = gallery;
       }
     });
@@ -24,37 +26,36 @@ export class HomePage {
   addFromCamera = () => {
     const options: CameraOptions = {
       quality: 100,
-      destinationType: this.camera.DestinationType.DATA_URL,
-      encodingType: this.camera.EncodingType.JPEG,
-      mediaType: this.camera.MediaType.PICTURE,
+      // destinationType: this.camera.DestinationType.FILE_URI,
+      // encodingType: this.camera.EncodingType.JPEG,
+      // mediaType: this.camera.MediaType.PICTURE,
       sourceType: this.camera.PictureSourceType.CAMERA,
-      targetWidth: 90,
-      targetHeight: 90,
-      saveToPhotoAlbum: false
+      // saveToPhotoAlbum: false
     };
 
-    this.ngzone.run(() => {
-      this.camera.getPicture(options).then((imageData) => {
-        console.log(imageData);
-        this.addImageToGallery(imageData);
-      }, (err) => {
-        if (err == 'cordova_not_available') {
-          return this.toastMessage("Disponível apenas em dispositivos reais");
-        }
+    this.camera.getPicture(options).then((imageData) => {
+      console.log(imageData);
+      this.addImageToGallery(imageData);
+    }, (err) => {
+      if (err == 'cordova_not_available') {
+        return this.toastMessage("Disponível apenas em dispositivos reais");
+      }
 
-        this.toastMessage(err);
-      });
-    })
+      this.toastMessage(err);
+    });
   };
+
+  viewImage = (image: string): void => {
+    this.navController.push(ViewPhotoPage, {image: image})
+  }
 
   addFromGallery = () => {
     const options: ImagePickerOptions = {
-      quality: 100,
-      outputType: this.camera.DestinationType.DATA_URL
+      quality: 100
     };
 
     this.imagePicker.getPictures(options).then((results) => {
-      for(let x in results) {
+      for (let x in results) {
         this.addImageToGallery(results[x]);
       }
     }, (err) => {
@@ -74,7 +75,20 @@ export class HomePage {
   }
 
   addImageToGallery = (img: string) => {
-      this.imagesGallery.push('data:image/jpeg;base64,' + img);
+    console.log('>>>>>');
+    if (this.plt.is('android')) {
+      console.log('aaaa');
+      this.filePath.resolveNativePath(img)
+        .then(filePath => {
+          // img = filePath;
+          // console.log(img);
+
+          this.imagesGallery.push(img);
+          this.storage.set('gallery', this.imagesGallery);
+        });
+    } else {
+      this.imagesGallery.push(img);
       this.storage.set('gallery', this.imagesGallery);
+    }
   };
 }

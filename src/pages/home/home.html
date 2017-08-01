@@ -8,7 +8,7 @@
   <ion-grid *ngIf="imagesGallery.length" text-center>
     <ion-row>
       <ion-col *ngFor="let image of imagesGallery" col-4>
-        <ion-img [src]="image"></ion-img>
+        <img [src]="sanitizer.bypassSecurityTrustUrl(image)" (click)="viewImage(image)" class="rounded-photo"/>
       </ion-col>
     </ion-row>
   </ion-grid>

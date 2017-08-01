@@ -4,19 +4,20 @@ import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
 import { MyApp } from './app.component';
 
 import { HomePage } from '../pages/home/home';
-import { TabsPage } from '../pages/tabs/tabs';
 
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { Camera } from "@ionic-native/camera";
 import {IonicStorageModule} from "@ionic/storage";
 import {ImagePicker} from "@ionic-native/image-picker";
+import {ViewPhotoPage} from "../pages/view-photo/view-photo";
+import {FilePath} from "@ionic-native/file-path";
 
 @NgModule({
   declarations: [
     MyApp,
     HomePage,
-    TabsPage
+    ViewPhotoPage
   ],
   imports: [
     BrowserModule,
@@ -27,14 +28,15 @@ import {ImagePicker} from "@ionic-native/image-picker";
   entryComponents: [
     MyApp,
     HomePage,
-    TabsPage
+    ViewPhotoPage
   ],
   providers: [
     StatusBar,
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     Camera,
-    ImagePicker
+    ImagePicker,
+    FilePath
   ]
 })
 export class AppModule {}
